@@ -106,9 +106,6 @@ img {
 
 .gallery {
   padding-top: 106px;
-  /*  display: flex;
-  flex-wrap: wrap;
-  gap: 20px; */
   display: grid;
   max-width: 1140px;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -161,13 +158,3 @@ img {
 .gallery__values {
   color: rgb(92, 91, 89);
 }
-
-/* .gallery__link {
-display: block;
-text-decoration: none;
-height: 100%;
-}
-
-.gallery__link:hover {
-   cursor: zoom-in;
- } */

@@ -25,11 +25,10 @@ function searchPics() {
     Notify.warning('Please type something.');
     return;
   }
-
   picsSerchAPI.query = refs.inputEl.value.trim();
   observer.observe(refs.guard);
   picsSerchAPI.resetPage();
-  clearMurkup();
+  clearMarkup();
 
   picsSerchAPI
     .fetchPictures(picsSerchAPI.query)
@@ -52,6 +51,7 @@ function onFetchError() {
     Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
     );
+    console.log(error);
   };
 }
 
@@ -61,33 +61,46 @@ function makePicsMarkup(data) {
     makeImageMarkup(data.hits)
   );
   lightbox.refresh();
+  /*   scrollSmooth(); */
 }
 
-function clearMurkup() {
+function clearMarkup() {
   refs.galleryContainer.innerHTML = '';
 }
 
-let lightbox = new SimpleLightbox('.gallery a', {
+let lightbox = new SimpleLightbox('.gallery div', {
   captionDelay: 250,
   captionSelector: 'img',
   captionsData: 'alt',
 });
 
-const onEntry = entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting /* && entry.boundingClientRect.bottom > 300 */) {
-      picsSerchAPI.icrementPage();
-      picsSerchAPI.fetchPictures().then(images => {
-        makePicsMarkup(images);
-        lightbox.refresh();
-      });
-    }
-  });
-};
-
 const observer = new IntersectionObserver(onEntry, {
   rootMargin: '200px',
 });
+
+function onEntry(entries, observer) {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      picsSerchAPI.icrementPage();
+      picsSerchAPI
+        .fetchPictures()
+        .then(data => {
+          makePicsMarkup(data);
+          lightbox.refresh();
+          if (
+            data.totalHits === refs.galleryContainer.children.length ||
+            data.totalHits < refs.galleryContainer.children.length
+          ) {
+            Notify.failure(
+              `We're sorry, but you've reached the end of search results.`
+            );
+            observer.unobserve(refs.guard);
+          }
+        })
+        .catch(error => console.log(error));
+    }
+  });
+}
 
 function makeImageMarkup(image) {
   return image
@@ -115,7 +128,7 @@ alt="${tags}" loading="lazy" title="Click to enlarge" width="290px" height="190p
       <span class="gallery__values">Comments: </span><span>${comments}</span>
     </p>
     <p class="gallery__features">
-      <span class="gallery__values">Downloads </span><span>${downloads}</span>
+      <span class="gallery__values">Downloads: </span><span>${downloads}</span>
     </p>
   </div>
 </div>`;
@@ -124,11 +137,14 @@ alt="${tags}" loading="lazy" title="Click to enlarge" width="290px" height="190p
     .join('');
 }
 
-/* const { height: cardHeight } = document
-  .querySelector('.gallery')
-  .firstElementChild.getBoundingClientRect();
+/* function scrollSmooth() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
 
-window.scrollBy({
-  top: cardHeight * 2,
-  behavior: 'smooth',
-}); */
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
+  console.log("scrolling")
+} */
